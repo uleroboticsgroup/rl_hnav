@@ -1,0 +1,267 @@
+# ==========================
+# Nav2 (Humble) - SLAM mode
+# Robot base frame: base_link_nav
+# ==========================
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: map
+    robot_base_frame: base_footprint
+
+    odom_topic: /odom
+    bt_loop_duration: 10
+    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
+
+planner_server:
+  ros__parameters:
+    use_sim_time: true
+    expected_planner_frequency: 5.0
+    global_frame: map
+    robot_base_frame: base_footprint
+
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+controller_server:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: odom
+    robot_base_frame: base_footprint
+    odom_topic: /odom
+
+    # IMPORTANT: on sort les cmd_vel du controller vers /cmd_vel_raw
+    # puis velocity_smoother republie /cmd_vel
+    cmd_vel_topic: /cmd_vel_raw
+
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.3
+
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["general_goal_checker"]
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.20
+      movement_time_allowance: 10.0
+
+    general_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      stateful: true
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+
+    controller_plugins: ["FollowPath"]
+
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: true
+
+      # ... tes vitesses / limites / samples etc (inchangés)
+      min_vel_x: -0.1
+      max_vel_x: 0.3
+      max_vel_theta: 1.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.3
+      min_speed_theta: 0.0
+      acc_lim_x: 1.0
+      acc_lim_theta: 2.0
+      decel_lim_x: -1.0
+      decel_lim_theta: -2.0
+      vx_samples: 10
+      vtheta_samples: 20
+      sim_time: 1.7
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      transform_tolerance: 0.3
+
+      #default_critic_namespaces: true
+
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+
+      # ✅ paramètres “flat” (au lieu de BaseObstacle: {scale: ...})
+      BaseObstacle.scale: 0.02
+
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 0.325
+
+      GoalAlign.scale: 24.0
+      GoalAlign.forward_point_distance: 0.325
+
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+      Oscillation.scale: 1.0
+
+
+controller_servers:
+  ros__parameters:
+    controller_frequency: 11.0
+      
+recoveries_server:
+  ros__parameters:
+    use_sim_time: true
+    cycle_frequency: 5.0
+    global_frame: odom
+    robot_base_frame: base_footprint
+
+    recovery_plugins: ["spin", "backup", "wait"]
+
+    spin:
+      plugin: "nav2_recoveries/Spin"
+    backup:
+      plugin: "nav2_recoveries/BackUp"
+    wait:
+      plugin: "nav2_recoveries/Wait"
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: true
+    cycle_frequency: 5.0
+    global_frame: odom
+    robot_base_frame: base_footprint
+    behavior_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+
+# -----------------
+# COSTMAPS
+# -----------------
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: map
+      robot_base_frame: base_footprint
+
+      update_frequency: 2.0
+      publish_frequency: 1.0
+      transform_tolerance: 0.3
+
+      resolution: 0.05
+      track_unknown_space: true
+      rolling_window: false
+
+      # si pas de footprint explicite, robot_radius suffit
+      robot_radius: 0.30
+
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: true
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.0
+          obstacle_range: 3.0
+          raytrace_range: 3.5
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.55
+        cost_scaling_factor: 3.0
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: odom
+      robot_base_frame: base_footprint
+
+      update_frequency: 8.0
+      publish_frequency: 4.0
+      transform_tolerance: 0.3
+
+      rolling_window: true
+      width: 6
+      height: 6
+      resolution: 0.05
+
+      robot_radius: 0.30
+
+      # IMPORTANT: local_costmap en SLAM -> pas besoin de static_layer
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.0
+          obstacle_range: 2.5
+          raytrace_range: 3.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.55
+        cost_scaling_factor: 3.0
+
+# -----------------
+# Waypoints
+# -----------------
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: true
+
+# -----------------
+# Velocity smoother
+# -----------------
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: true
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: "OPEN_LOOP"
+
+    # IMPORTANT: pas de boucle !
+    cmd_vel_in_topic: /cmd_vel_raw
+    cmd_vel_out_topic: /cmd_vel
+
+    odom_topic: /odom
+
+    max_velocity: [0.3, 0.0, 1.0]
+    min_velocity: [-0.1, 0.0, -1.0]
+    max_accel: [1.0, 0.0, 2.0]
+    max_decel: [-1.0, 0.0, -2.0]
+
+# -----------------
+# Lifecycle manager
+# -----------------
+lifecycle_manager_navigation:
+  ros__parameters:
+    use_sim_time: true
+    autostart: true
+    node_names:
+      - controller_server
+      - planner_server
+      - behavior_server
+      - bt_navigator
+      - waypoint_follower
+      - velocity_smoother
+      - local_costmap
+      - global_costmap

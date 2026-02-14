@@ -1,0 +1,30 @@
+# ROS2 / colcon build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Large artifacts
+*.bag
+*.bag.active
+*.db3
+*.sqlite3
+
+# Optional: datasets / results
+data/
+results/

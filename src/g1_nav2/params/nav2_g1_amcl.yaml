@@ -1,0 +1,201 @@
+# -------------------------
+# Map server (carte statique)
+# -------------------------
+map_server:
+  ros__parameters:
+    use_sim_time: true
+    yaml_filename: /home/jean/maps/g1_map.yaml
+
+# -------------------------
+# AMCL (map -> odom)
+# -------------------------
+amcl:
+  ros__parameters:
+    use_sim_time: true
+    global_frame_id: map
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    scan_topic: /scan
+
+    # paramètres safe de départ
+    min_particles: 500
+    max_particles: 2000
+    update_min_d: 0.10
+    update_min_a: 0.15
+    resample_interval: 1
+    transform_tolerance: 0.3
+
+# -------------------------
+# BT Navigator
+# -------------------------
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: map
+    robot_base_frame: base_footprint
+    odom_topic: /odom
+    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
+
+# -------------------------
+# Planner
+# -------------------------
+planner_server:
+  ros__parameters:
+    use_sim_time: true
+    expected_planner_frequency: 5.0
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      allow_unknown: true
+
+# -------------------------
+# Controller
+# -------------------------
+
+controller_server:
+  ros__parameters:
+    use_sim_time: true
+    controller_frequency: 20.0
+    cmd_vel_topic: /cmd_vel
+    controller_plugins: ["FollowPath"]
+
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      transform_tolerance: 0.3
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+
+      max_vel_x: 0.3
+      min_vel_x: -0.1
+      max_vel_theta: 1.0
+
+      acc_lim_x: 1.0
+      acc_lim_theta: 2.0
+      decel_lim_x: -1.0
+      decel_lim_theta: -2.0
+
+      vx_samples: 10
+      vtheta_samples: 20
+      sim_time: 1.7
+
+      critics:
+        - RotateToGoal
+        - Oscillation
+        - BaseObstacle
+        - GoalAlign
+        - PathAlign
+        - PathDist
+        - GoalDist
+
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 0.325
+      GoalAlign.scale: 24.0
+      GoalAlign.forward_point_distance: 0.325
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+
+
+# -------------------------
+# Recoveries
+# -------------------------
+recoveries_server:
+  ros__parameters:
+    use_sim_time: true
+    cycle_frequency: 5.0
+    recovery_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_recoveries/Spin"
+    backup:
+      plugin: "nav2_recoveries/BackUp"
+    wait:
+      plugin: "nav2_recoveries/Wait"
+
+# -------------------------
+# Costmaps
+# -------------------------
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: map
+      robot_base_frame: base_footprint
+
+      update_frequency: 2.0
+      publish_frequency: 1.0
+      resolution: 0.05
+
+      rolling_window: false
+      track_unknown_space: true
+
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: true
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          clearing: true
+          marking: true
+          max_obstacle_height: 2.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.55
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: odom
+      robot_base_frame: base_footprint
+
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      resolution: 0.05
+
+      rolling_window: true
+      width: 6.0
+      height: 6.0
+
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          clearing: true
+          marking: true
+          max_obstacle_height: 2.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.55
+
+# -------------------------
+# Lifecycle manager
+# -------------------------
+lifecycle_manager_navigation:
+  ros__parameters:
+    use_sim_time: true
+    autostart: true
+    node_names:
+      - map_server
+      - amcl
+      - controller_server
+      - planner_server
+      - recoveries_server
+      - bt_navigator
+      - local_costmap
+      - global_costmap

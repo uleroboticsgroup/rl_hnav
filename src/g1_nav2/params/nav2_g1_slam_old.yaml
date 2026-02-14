@@ -1,0 +1,184 @@
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: map
+    robot_base_frame: base_footprint
+    odom_topic: /odom
+    bt_loop_duration: 10
+    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
+
+controller_server:
+  ros__parameters:
+    global_frame: odom
+    robot_base_frame: base_footprint
+    odom_topic: /odom
+    cmd_vel_topic: /cmd_vel
+    use_sim_time: true
+
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.3
+
+    controller_plugins: ["FollowPath"]
+
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: false
+
+    FollowPath.critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+
+    FollowPath.min_vel_x: -0.1
+    FollowPath.max_vel_x: 0.3
+    FollowPath.max_vel_theta: 1.0
+    FollowPath.vx_samples: 10
+    FollowPath.vtheta_samples: 20
+    FollowPath.sim_time: 1.7
+    FollowPath.linear_granularity: 0.05
+    FollowPath.angular_granularity: 0.025
+    FollowPath.transform_tolerance: 0.3
+    FollowPath.xy_goal_tolerance: 0.25
+    FollowPath.yaw_goal_tolerance: 0.25
+
+    FollowPath.BaseObstacle.scale: 0.02
+    FollowPath.PathAlign.scale: 32.0
+    FollowPath.PathAlign.forward_point_distance: 0.325
+    FollowPath.GoalAlign.scale: 24.0
+    FollowPath.GoalAlign.forward_point_distance: 0.325
+    FollowPath.PathDist.scale: 32.0
+    FollowPath.GoalDist.scale: 24.0
+    FollowPath.RotateToGoal.scale: 32.0
+    FollowPath.RotateToGoal.slowing_factor: 5.0
+    FollowPath.RotateToGoal.lookahead_time: -1.0
+
+planner_server:
+  ros__parameters:
+    use_sim_time: true
+    expected_planner_frequency: 5.0
+    global_frame: map
+    robot_base_frame: base_footprint
+
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+recoveries_server:
+  ros__parameters:
+    use_sim_time: true
+    cycle_frequency: 5.0
+    global_frame: odom
+    robot_base_frame: base_footprint
+    recovery_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_recoveries/Spin"
+    backup:
+      plugin: "nav2_recoveries/BackUp"
+    wait:
+      plugin: "nav2_recoveries/Wait"
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: true
+    cycle_frequency: 5.0
+    global_frame: odom
+    robot_base_frame: base_footprint
+    behavior_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+
+# --- COSTMAPS ---
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: map
+      robot_base_frame: base_footprint
+      update_frequency: 2.0
+      publish_frequency: 1.0
+      resolution: 0.05
+      track_unknown_space: true
+      rolling_window: false
+      robot_radius: 0.30
+
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: true
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: true
+          marking: true
+          data_type: "LaserScan"
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.55
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: odom
+      robot_base_frame: base_footprint
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      rolling_window: true
+      width: 6
+      height: 6
+      resolution: 0.05
+      robot_radius: 0.30
+
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: true
+          marking: true
+          data_type: "LaserScan"
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.55
+
+# SLAM toolbox publie /map, donc PAS de map_server ici
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: true
+
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: true
+    smoothing_frequency: 20.0
+    scale_velocities: false
+
+lifecycle_manager_navigation:
+  ros__parameters:
+    use_sim_time: true
+    autostart: true
+    node_names:
+      - controller_server
+      - planner_server
+      - behavior_server   
+      - bt_navigator
+      - waypoint_follower
+      - velocity_smoother
+      - local_costmap
+      - global_costmap

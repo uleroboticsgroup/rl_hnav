@@ -1,0 +1,44 @@
+# CMake
+build
+devel
+logs
+install
+log
+.catkin_tools
+cmake_build
+package.xml
+
+# Rust
+rust_build
+Cargo.lock
+
+# Python
+__pycache__
+
+# IDE
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Interface
+onnxruntime
+libtorch
+
+# Mujoco
+mujoco
+MUJOCO_LOG.TXT
+
+# Data
+.cache
+*.json
+
+# temp
+*.zip
+*.tgz
+*.tar.gz
+temp_extract*/
+
+# robot descriptions
+rl_sar_zoo
