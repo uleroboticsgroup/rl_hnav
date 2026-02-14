@@ -266,13 +266,13 @@ This repository expects MuJoCo under:
 Check:
 
 ```bash
-ls -lah g1_ws/src/rl_sar/library/mujoco/lib/libmujoco.so.3.2.7
+ls -lah rl_hnav/src/rl_sar/library/mujoco/lib/libmujoco.so.3.2.7
 ```
 
 If your repo provides a helper script:
 
 ```bash
-bash g1_ws/src/rl_sar/scripts/download_mujoco.sh
+bash rl_hnav/src/rl_sar/scripts/download_mujoco.sh
 ```
 
 ---
@@ -281,8 +281,8 @@ bash g1_ws/src/rl_sar/scripts/download_mujoco.sh
 
 ```bash
 cd ~/
-git clone <YOUR_REPO_URL> rl_sar
-cd rl_sar
+git clone https://github.com/uleroboticsgroup/rl_hnav.git
+cd rl_hnav
 git submodule update --init --recursive
 ```
 
@@ -291,7 +291,7 @@ git submodule update --init --recursive
 ## Build (ROS 2 friendly)
 
 ```bash
-cd ~/g1_ws
+cd ~/rl_hnav
 source /opt/ros/humble/setup.bash
 colcon build 
 source install/setup.bash
@@ -300,7 +300,7 @@ source install/setup.bash
 ### Build with MuJoCo enabled (recommended)
 
 ```bash
-cd ~/g1_ws
+cd ~/rl_hnav
 colcon build --cmake-args -DUSE_MUJOCO=ON
 source install/setup.bash
 ```
@@ -337,7 +337,7 @@ At startup, follow this sequence for safe, stable initialization:
 Open a new terminal, launch then bring up Nav2 + Gazebo that read (`/odom`) from MuJoCo pose to allow SLAM publishing the map. 
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 ros2 launch g1_nav2 nav_amcl.launch.py
 ```
 After that:
@@ -360,7 +360,7 @@ Typical workflow uses multiple terminals:
 ### Validate topics
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 ros2 topic echo /cmd_vel
 ros2 topic list | grep -E "/odom|/tf|/scan|/cmd_vel"
 ```
@@ -385,7 +385,7 @@ Recommended progression:
 ## RE-BUILD
 
 ```bash
-cd ~/g1_ws
+cd ~/rl_hnav
 rm -rf build/rl_sar install/rl_sar log
 colcon build --packages-select rl_sar \
   --cmake-args -DUSE_MUJOCO=ON -DENABLE_REAL_ROBOT=ON
@@ -399,7 +399,7 @@ source install/setup.bash
 
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
   -p hw_mode:=1 -p fake_rl_full:=true -p publish_lowcmd:=false \
   -p navigation_mode:=true -p cmd_vel_topic:=/cmd_vel
@@ -407,7 +407,7 @@ ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
 ### Real robot mode operation
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
   -p hw_mode:=0 -p publish_lowcmd:=true \
   -p navigation_mode:=true -p cmd_vel_topic:=/cmd_vel -p cmd_vel_timeout_sec:=0.2
@@ -430,13 +430,13 @@ ldd install/rl_sar/lib/rl_sar/rl_mujoco | grep mujoco
 - Ensure `/cmd_vel` is published:
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 ros2 topic echo /cmd_vel
 ```
 - Increase timeout for testing:
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 -p cmd_vel_timeout_sec:=2.0
 ```
 
@@ -457,7 +457,7 @@ Please cite the following if you use this code or parts of it:
   author = {Mayoko Biong J.C, Matellán-Olivera V., Sánchez-González L.,},
   title = {rl_hnav: Navigation-Aware Hybrid Execution Stack for Unitree G1
 .},
-  url = {https://github.com/xxxxxxx},
+  url = {https://github.com/uleroboticsgroup/rl_hnav.git},
   year = {2026}
 }
 ```
