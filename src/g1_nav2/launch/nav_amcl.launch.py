@@ -13,6 +13,9 @@ from launch.event_handlers import OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import GroupAction
+from launch_ros.actions import SetParameter
+
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -114,7 +117,7 @@ def generate_launch_description():
             ),
             launch_arguments={
                 "use_sim_time": use_sim_time,
-                "pose_topic": "/mujoco/base_pose",
+                "mujoco_pose_topic": "/mujoco/base_pose",
                 "odom_topic": "/mujoco/odom",
             }.items(),
         )
@@ -129,7 +132,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
-            "pose_topic": "/mujoco/base_pose",
+            "mujoco_pose_topic": "/mujoco/base_pose",
             "odom_topic": "/odom",   
             "publish_map_odom_identity": publish_map_odom_identity,
         }.items(),
@@ -198,9 +201,9 @@ def generate_launch_description():
     )
 
     # Delays (simple et efficace)
-    slam_delayed = TimerAction(period=5.0, actions=[slam])
-    nav2_delayed = TimerAction(period=10.0, actions=[nav2])
-    dump_delayed = TimerAction(period=18.0, actions=[dump_controller_params])
+    slam_delayed = TimerAction(period=10.0, actions=[slam])
+    nav2_delayed = TimerAction(period=16.0, actions=[nav2])
+    dump_delayed = TimerAction(period=20.0, actions=[dump_controller_params])
     '''
     rl_sar_delayed = TimerAction(
         period=3.0,
@@ -240,25 +243,22 @@ def generate_launch_description():
         ])
     '''
 
-    return LaunchDescription([
-        DeclareLaunchArgument("use_sim_time", default_value="true"),
-        DeclareLaunchArgument("map_name", default_value="g1_map"),
-        DeclareLaunchArgument(
-            "publish_map_odom_identity",
-            default_value="false",
-            description="Publish static TF map->odom identity (debug SLAM)"
-        ),
+    # -----------------------------
+    # GROUP 1: Bridge en WALL time (Option A)
+    # -----------------------------
+    bridge_group = GroupAction([
+        SetParameter(name="use_sim_time", value=False),
+        bridge_delayed,   # ton IncludeLaunchDescription du bridge
+    ])
 
-        log_params,
+    # -----------------------------
+    # GROUP 2: Tout le reste suit /clock
+    # -----------------------------
+    sim_group = GroupAction([
+        SetParameter(name="use_sim_time", value=True),
 
         # 1) Gazebo
         g1_spawn,
-
-        # 2) MuJoCo locomotion
-        #rl_sar_delayed,
-
-        # 3) Bridge MuJoCo → Nav2
-        bridge_delayed,
 
         # 4) SLAM
         slam_delayed,
@@ -272,3 +272,22 @@ def generate_launch_description():
         # 7) RViz
         rviz,
     ])
+
+    return LaunchDescription([
+        DeclareLaunchArgument("use_sim_time", default_value="true"),  
+        DeclareLaunchArgument("map_name", default_value="g1_map"),
+        DeclareLaunchArgument(
+            "publish_map_odom_identity",
+            default_value="false",
+            description="Publish static TF map->odom identity (debug SLAM)"
+        ),
+
+        log_params,
+
+        # ✅ Bridge d'abord et hors sim_time true
+        bridge_group,
+
+        # ✅ Le reste en sim time
+        sim_group,
+    ])
+

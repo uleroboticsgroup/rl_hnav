@@ -301,7 +301,7 @@ source install/setup.bash
 
 ```bash
 cd ~/rl_hnav
-colcon build --cmake-args -DUSE_MUJOCO=ON
+colcon build --cmake-args -DUSE_MUJOCO=ON -DENABLE_REAL_ROBOT=ON
 source install/setup.bash
 ```
 
@@ -313,7 +313,7 @@ Command (as used in this project):
 
 ```bash
 source /opt/ros/humble/setup.bash ###(zsh)
-source g1_ws/install/setup.bash ###(zsh)
+source rl_hnav/install/setup.bash ###(zsh)
 ros2 run rl_sar rl_mujoco g1 scene_29dof   --ros-args -p navigation_mode:=true -p cmd_vel_timeout_sec:=0.6 -p cmd_vel_topic:=/cmd_vel
 ```
 

@@ -93,3 +93,22 @@ static constexpr bool is_edu23_active_joint(int policy_joint_index)
             return false;
     }
 }
+
+static constexpr int kPolicyToHw23[29] = {
+  // 0..12
+   0,  1,  2,  3,  4,  5,
+   6,  7,  8,  9, 10, 11,
+  12,
+  // 13,14 absent
+  -1, -1,
+  // 15..19
+  13, 14, 15, 16, 17,
+  // 20,21 absent
+  -1, -1,
+  // 22..26
+  18, 19, 20, 21, 22,
+  // 27,28 absent
+  -1, -1
+};
+static_assert(sizeof(kPolicyToHw23)/sizeof(int) == 29);
+
