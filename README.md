@@ -186,23 +186,7 @@ Recommended: **Ubuntu 22.04 + ROS 2 Humble + Gazebo Classic (Gazebo 11)**
 
 ---
 
-## Quick Behavior Matrix (TL;DR)
-
-One binary, no rebuild. Behavior is selected at runtime via ROS 2 parameters.
-
-Parameters (minimal)
-
-hw_mode
-
-0 → REAL
-
-1 → FAKE_LOWSTATE
-
-publish_lowcmd (true | false)
-
-fake_rl_full (true | false, only meaningful in FAKE_LOWSTATE)
-
-## Behavior Matrix (Clear & Unambiguous)
+## Behavior Matrix
 
 This project supports multiple execution modes with a **single binary** (no rebuild),
 selected at runtime via ROS 2 parameters.
@@ -229,13 +213,6 @@ selected at runtime via ROS 2 parameters.
 | `FAKE_LOWSTATE` + `fake_rl_full=false` | Synthetic | ❌ | ❌ | ❌ | Validate joint mapping + `/cmd_vel` reception only |
 | `FAKE_LOWSTATE` + `fake_rl_full=true` + `publish_lowcmd=false` | Synthetic | ✅ | ✅ | ❌ | Full RL pipeline + logs without robot (safe) |
 
-### Example launch commands
-
-**1) Fake mode (mapping + cmd_vel only)**
-```bash
-ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
-  -p hw_mode:=1 -p fake_rl_full:=false -p publish_lowcmd:=false \
-  -p navigation_mode:=true -p cmd_vel_topic:=/cmd_vel
 
 ## Install dependencies (Ubuntu 22.04)
 
@@ -258,7 +235,7 @@ sudo apt install -y ros-humble-gazebo-ros-pkgs ros-humble-gazebo-msgs
 This repository expects MuJoCo under:
 
 ```
-<repo_root>/library/mujoco/
+rl_hnav/src/rl_sar/library/mujoco/
   include/mujoco/mujoco.h
   lib/libmujoco.so.3.2.7
 ```
@@ -454,7 +431,7 @@ Please cite the following if you use this code or parts of it:
 
 ```
 @software{jean-2026g1,
-  author = {Mayoko Biong J.C, Matellán-Olivera V., Sánchez-González L.,},
+  author = {Mayoko Biong J.C, Sánchez-González L., Matellán-Olivera V.,},
   title = {rl_hnav: Navigation-Aware Hybrid Execution Stack for Unitree G1
 .},
   url = {https://github.com/uleroboticsgroup/rl_hnav.git},
