@@ -313,8 +313,8 @@ At startup, follow this sequence for safe, stable initialization:
 
 Open a new terminal, launch then bring up Nav2 + Gazebo that read (`/odom`) from MuJoCo pose to allow SLAM publishing the map. 
 ```bash
-source /opt/ros/humble/setup.bash ###(zsh)
-source rl_hnav/install/setup.bash ###(zsh)
+source /opt/ros/humble/setup.bash ###(.zsh)
+source rl_hnav/install/setup.bash ###(.zsh)
 ros2 launch g1_nav2 nav_amcl.launch.py
 ```
 After that:
@@ -326,18 +326,19 @@ After that:
 
 ## Hybrid simulation: Gazebo + Nav2 + MuJoCo
 
-Typical workflow uses multiple terminals:
+Typical workflow uses multiple terminals (2):
 
-1) **Gazebo Classic** world + sensors  
-2) *(Optional)* **slam_toolbox** to create `/map`  
-3) **Nav2** to produce `/cmd_vel`  
-4) **MuJoCo** locomotion (`rl_mujoco`)  
-5) **Bridge** to synchronize pose/state 
+1) **MuJoCo** locomotion (`rl_mujoco`) 
+2) **Gazebo + Bridge + SLAM + Nav2 (from the main pipeline)**
+  - **Gazebo Classic** world + sensors  
+  - **slam_toolbox** to create `/map`  
+  - **Nav2** to produce `/cmd_vel`  
+  - **Bridge** to synchronize pose/state 
 
 ### Validate topics
 ```bash
-source /opt/ros/humble/setup.bash ###(zsh)
-source rl_hnav/install/setup.bash ###(zsh)
+source /opt/ros/humble/setup.bash ###(.zsh)
+source rl_hnav/install/setup.bash ###(.zsh)
 ros2 topic echo /cmd_vel
 ros2 topic list | grep -E "/odom|/tf|/scan|/cmd_vel"
 ```
@@ -359,14 +360,11 @@ Recommended progression:
 > For EDU23, missing joints are masked (policy space stays 29-DoF, hardware has 23 active joints).
 
 ---
-## RE-BUILD
+## BUILD
 
 ```bash
 cd ~/rl_hnav
-rm -rf build/rl_sar install/rl_sar log
-colcon build --packages-select rl_sar \
-  --cmake-args -DUSE_MUJOCO=ON -DENABLE_REAL_ROBOT=ON
-
+colcon build --cmake-args -DUSE_MUJOCO=ON -DENABLE_REAL_ROBOT=ON
 source install/setup.bash
 ```
 
@@ -375,16 +373,16 @@ source install/setup.bash
 ### Fake mode (full RL test without robot (logs, plots, CSV) still safe)
 
 ```bash
-source /opt/ros/humble/setup.bash ###(zsh)
-source rl_hnav/install/setup.bash ###(zsh)
+source /opt/ros/humble/setup.bash ###(.zsh)
+source rl_hnav/install/setup.bash ###(.zsh)
 ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
   -p hw_mode:=1 -p fake_rl_full:=true -p publish_lowcmd:=false \
   -p navigation_mode:=true -p cmd_vel_topic:=/cmd_vel
 ```
 ### Real robot mode operation
 ```bash
-source /opt/ros/humble/setup.bash ###(zsh)
-source rl_hnav/install/setup.bash ###(zsh)
+source /opt/ros/humble/setup.bash ###(.zsh)
+source rl_hnav/install/setup.bash ###(.zsh)
 ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
   -p hw_mode:=0 -p publish_lowcmd:=true \
   -p navigation_mode:=true -p cmd_vel_topic:=/cmd_vel -p cmd_vel_timeout_sec:=0.2
