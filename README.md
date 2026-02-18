@@ -388,7 +388,7 @@ ros2 run rl_sar rl_real_g1_edu23 wlo1 --ros-args \
   -p navigation_mode:=true -p cmd_vel_topic:=/cmd_vel -p cmd_vel_timeout_sec:=0.2
 
 ```
-**wlo1 is the network interface**
+**wlo1 is the network interface, recommended use Ethernet as eno1**
 
 ## Troubleshooting
 
@@ -400,18 +400,20 @@ Check:
 ```bash
 ldd install/rl_sar/lib/rl_sar/rl_mujoco | grep mujoco
 ```
+### Runing in SIMU
+In some cases, during the first launch, the bridge may start before Gazebo begins publishing /clock. As a result, the TF tree may be incomplete due to the absence of the odom frame. Simply restart the system to resolve the issue.
 
 ### No motion
 - Ensure `/cmd_vel` is published:
 ```bash
-source /opt/ros/humble/setup.bash ###(zsh)
-source rl_hnav/install/setup.bash ###(zsh)
+source /opt/ros/humble/setup.bash ###(.zsh)
+source rl_hnav/install/setup.bash ###(.zsh)
 ros2 topic echo /cmd_vel
 ```
 - Increase timeout for testing:
 ```bash
-source /opt/ros/humble/setup.bash ###(zsh)
-source rl_hnav/install/setup.bash ###(zsh)
+source /opt/ros/humble/setup.bash ###(.zsh)
+source rl_hnav/install/setup.bash ###(.zsh)
 -p cmd_vel_timeout_sec:=2.0
 ```
 
