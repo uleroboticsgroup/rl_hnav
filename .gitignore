@@ -28,3 +28,4 @@ venv/
 # Optional: datasets / results
 data/
 results/
+agent/
