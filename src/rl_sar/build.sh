@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Load common utilities
-source "${SCRIPT_DIR}/scripts/common.sh"
+source "${SCRIPT_DIR}/run/common.sh"
 
 # ========================
 # Configuration
@@ -19,7 +19,7 @@ setup_inference_runtime() {
     print_header "[Setting up Inference Runtime]"
 
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    DOWNLOAD_SCRIPT="${SCRIPT_DIR}/scripts/download_inference_runtime.sh"
+    DOWNLOAD_SCRIPT="${SCRIPT_DIR}/run/download_inference_runtime.sh"
 
     if [ -f "$DOWNLOAD_SCRIPT" ]; then
         print_info "Checking inference libraries..."
@@ -37,7 +37,7 @@ setup_mujoco() {
     print_header "[Setting up MuJoCo]"
 
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    DOWNLOAD_MUJOCO_SCRIPT="${SCRIPT_DIR}/scripts/download_mujoco.sh"
+    DOWNLOAD_MUJOCO_SCRIPT="${SCRIPT_DIR}/run/download_mujoco.sh"
 
     if [ -f "$DOWNLOAD_MUJOCO_SCRIPT" ]; then
         print_info "Checking MuJoCo library..."
@@ -55,7 +55,7 @@ setup_robot_descriptions() {
     print_header "[Setting up Robot Descriptions]"
 
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-    DOWNLOAD_ROBOT_DESC_SCRIPT="${SCRIPT_DIR}/scripts/download_robot_descriptions.sh"
+    DOWNLOAD_ROBOT_DESC_SCRIPT="${SCRIPT_DIR}/run/download_robot_descriptions.sh"
 
     if [ -f "$DOWNLOAD_ROBOT_DESC_SCRIPT" ]; then
         print_info "Checking robot description files..."
