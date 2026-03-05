@@ -12,7 +12,7 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ..:/workspace:rw
+      - ..:/home/developer/rl_hnav:rw
     stdin_open: true
     tty: true
     privileged: true

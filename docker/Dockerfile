@@ -58,7 +58,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
 ENV QT_X11_NO_MITSHM 1
 
 USER $USERNAME
-WORKDIR /workspace
+WORKDIR /home/$USERNAME
 
 # 5. Automatic sourcing
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
