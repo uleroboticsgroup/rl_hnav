@@ -1,7 +1,7 @@
 # ROS2 / colcon build artifacts
 build/
 install/
-log/
+/log/
 
 # Python
 __pycache__/

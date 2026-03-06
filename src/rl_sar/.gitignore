@@ -3,7 +3,7 @@ build
 devel
 logs
 install
-log
+/log
 .catkin_tools
 cmake_build
 package.xml

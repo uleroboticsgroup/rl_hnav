@@ -40,6 +40,13 @@ RUN apt-get update && apt-get install -y \
     ros-humble-control-toolbox \
     ros-humble-realtime-tools \
     ros-humble-joint-state-publisher \
+    ros-humble-hardware-interface \
+    ros-humble-controller-interface \
+    ros-humble-pluginlib \
+    ros-humble-urdf \
+    ros-humble-joint-state-broadcaster \
+    ros-humble-std-srvs \
+    ros-humble-ros2-controllers \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Setup non-root user
