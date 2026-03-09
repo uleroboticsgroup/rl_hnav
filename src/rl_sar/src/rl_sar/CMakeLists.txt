@@ -82,6 +82,7 @@ if(NOT USE_CMAKE)
         find_package(std_msgs REQUIRED)
         find_package(robot_msgs REQUIRED)
         find_package(robot_joint_controller REQUIRED)
+        find_package(sensor_msgs REQUIRED)
         find_package(rclpy REQUIRED)
         find_package(gazebo_msgs REQUIRED)
         find_package(std_srvs REQUIRED)
@@ -777,6 +778,7 @@ if(USE_MUJOCO)
         ament_target_dependencies(rl_mujoco
             rclcpp
             geometry_msgs
+            sensor_msgs
         )
         # Optional but useful for /tf, /clock, etc if you use them later
         # ament_target_dependencies(rl_mujoco tf2_ros nav_msgs sensor_msgs)

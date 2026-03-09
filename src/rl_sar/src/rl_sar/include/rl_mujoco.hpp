@@ -32,6 +32,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <rclcpp/executors/single_threaded_executor.hpp>
 
 // =====================================================
@@ -94,6 +95,7 @@ private:
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscriber, cmd_vel_subscriber__;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr base_pose_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_states_pub_;
 
     std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> exec_;
     std::mutex exec_mtx_;
@@ -117,6 +119,7 @@ private:
     rclcpp::Time last_pose_pub_stamp_;
 
     void PublishBasePose_();
+    void PublishJointStates_();
 
     // =====================================================
     // Boot / reset helpers
