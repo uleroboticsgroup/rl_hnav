@@ -139,12 +139,13 @@ void RL_Mujoco::PublishBasePose_()
 
     last_pose_pub_stamp_ = now;
 
-    double x, y, qw, qx, qy, qz;
+    double x, y, z, qw, qx, qy, qz;
     {
         const std::lock_guard<std::recursive_mutex> lock(sim->mtx);
         // freejoint base: qpos[0..6] = x y z qw qx qy qz (dans la plupart des MJCF)
         x  = mj_data->qpos[0];
         y  = mj_data->qpos[1];
+        z  = mj_data->qpos[2];
         qw = mj_data->qpos[3];
         qx = mj_data->qpos[4];
         qy = mj_data->qpos[5];
@@ -156,7 +157,8 @@ void RL_Mujoco::PublishBasePose_()
     pose.header.frame_id = "odom";
     pose.pose.position.x = x;
     pose.pose.position.y = y;
-    pose.pose.position.z = 0.0; // nav2 2D
+    pose.pose.position.z = z; // Use real height
+
 
     pose.pose.orientation.w = qw;
     pose.pose.orientation.x = qx;
@@ -164,6 +166,64 @@ void RL_Mujoco::PublishBasePose_()
     pose.pose.orientation.z = qz;
 
     base_pose_pub_->publish(pose);
+}
+
+void RL_Mujoco::PublishJointStates_()
+{
+    if (!joint_states_pub_ || !mj_model || !mj_data || !ros2_node || !sim)
+        return;
+
+    const auto now = ros2_node->now();
+
+    sensor_msgs::msg::JointState msg;
+    msg.header.stamp = now;
+    
+    std::vector<std::string> j_names;
+    int ndof = 0;
+    {
+        std::lock_guard<std::mutex> lock(model_mutex);
+        try {
+            j_names = params.Get<std::vector<std::string>>("joint_names");
+            ndof = params.Get<int>("num_of_dofs");
+        } catch (...) {
+            return;
+        }
+    }
+
+    if (j_names.size() != (size_t)ndof || ndof <= 0) return;
+
+    {
+        const std::lock_guard<std::recursive_mutex> lock(sim->mtx);
+        for (int i = 0; i < ndof; ++i)
+        {
+            msg.name.push_back(j_names[i]);
+            
+            // Try to find sensor by name: "joint_name" -> "joint_name_pos"
+            std::string sensor_name = j_names[i];
+            if (sensor_name.length() > 6 && sensor_name.substr(sensor_name.length() - 6) == "_joint") {
+                sensor_name = sensor_name.substr(0, sensor_name.length() - 6) + "_pos";
+            }
+            
+            int sensor_id = mj_name2id(mj_model, mjOBJ_SENSOR, sensor_name.c_str());
+            if (sensor_id >= 0 && sensor_id < mj_model->nsensor) {
+                int adr = mj_model->sensor_adr[sensor_id];
+                if (adr < mj_model->nsensordata) {
+                    msg.position.push_back(mj_data->sensordata[adr]);
+                } else {
+                    msg.position.push_back(0.0);
+                }
+            } else {
+                // Fallback to direct index if sensor name doesn't match
+                if (i < mj_model->nsensordata) {
+                    msg.position.push_back(mj_data->sensordata[i]);
+                } else {
+                    msg.position.push_back(0.0);
+                }
+            }
+        }
+    }
+
+    joint_states_pub_->publish(msg);
 }
 
 // ============================================================
@@ -224,6 +284,10 @@ RL_Mujoco::RL_Mujoco(int argc, char **argv)
     base_pose_pub_ =
         ros2_node->create_publisher<geometry_msgs::msg::PoseStamped>(
             "/mujoco/base_pose", 10
+        );
+    joint_states_pub_ =
+        ros2_node->create_publisher<sensor_msgs::msg::JointState>(
+            "/mujoco/joint_states", 10
         );
 
 
@@ -586,6 +650,7 @@ void RL_Mujoco::RunModel()
     }
 
     PublishBasePose_();
+    PublishJointStates_();
 }
 
 // ============================================================

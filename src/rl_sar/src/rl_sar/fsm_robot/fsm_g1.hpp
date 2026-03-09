@@ -187,7 +187,8 @@ RLFSMStateRLRoboMimicLocomotion(RL *rl) : RLFSMState(*rl, "RLFSMStateRLRoboMimic
                 "ang_vel_scale",
                 "dof_pos_scale",
                 "dof_vel_scale",
-                "commands_scale"
+                "commands_scale",
+                "joint_mapping"
             };
 
             for (const auto& k : kPolicyKeys)
