@@ -14,7 +14,7 @@ def generate_launch_description():
     g1_desc_share   = get_package_share_directory("g1_description")
 
     world = os.path.join(g1_gazebo_share, "worlds", "turtlebot3_house.world")
-    urdf_path = os.path.join(g1_desc_share, "urdf", "g1_23dof.urdf")
+    urdf_path = os.path.join(g1_desc_share, "urdf", "g1_29dof.urdf")
 
     candidate_model_paths = [
         os.path.join(g1_gazebo_share, "models"),
@@ -26,32 +26,42 @@ def generate_launch_description():
     # --- plugin path for your custom Gazebo model plugin (.so) ---
     custom_plugin_path = os.path.join(
         os.path.expanduser("~"),
-        "g1_ws", "install", "gazebo_mujoco_pose_sync", "lib"
+        "rl_hnav", "install", "gazebo_mujoco_pose_sync", "lib"
     )
 
-    # Existing plugin path from env (might be empty)
+    # Existing paths from env
     existing_plugin_path = os.environ.get("GAZEBO_PLUGIN_PATH", "")
-
-    # Compose final GAZEBO_PLUGIN_PATH
-    # (Put our plugin first so Gazebo finds it even if paths conflict)
-    final_plugin_path = custom_plugin_path
-    if existing_plugin_path:
-        final_plugin_path += ":" + existing_plugin_path
-
-    # --- Gazebo ENV (actions launch) ---
-
+    existing_model_path = os.environ.get("GAZEBO_MODEL_PATH", "")
     existing_ld = os.environ.get("LD_LIBRARY_PATH", "")
+
+    # Compose final paths
+    final_plugin_path = custom_plugin_path + (":" + existing_plugin_path if existing_plugin_path else "")
+    
+    # Standard Gazebo/ROS model paths
+    system_model_paths = [
+        "/usr/share/gazebo-11/models",
+        "/usr/share/gazebo-10/models",
+        "/usr/share/gazebo-9/models",
+        "/opt/ros/humble/share",
+    ]
+    for p in system_model_paths:
+        if os.path.exists(p) and p not in model_paths:
+            model_paths.append(p)
+
+    # --- project src path to find meshes via package:// ---
+    project_src_path = os.path.join(os.path.expanduser("~"), "rl_hnav", "src")
+    if project_src_path not in model_paths:
+        model_paths.append(project_src_path)
+    
+    final_model_path = ":".join(model_paths) + (":" + existing_model_path if existing_model_path else "")
     final_ld = custom_plugin_path + (":" + existing_ld if existing_ld else "")
 
     set_gazebo_env = [
         SetEnvironmentVariable("GAZEBO_MODEL_DATABASE_URI", ""),
         SetEnvironmentVariable("GAZEBO_PLUGIN_PATH", final_plugin_path),
         SetEnvironmentVariable("LD_LIBRARY_PATH", final_ld),
+        SetEnvironmentVariable("GAZEBO_MODEL_PATH", final_model_path),
     ]
-    if model_paths:
-        set_gazebo_env.append(
-            SetEnvironmentVariable("GAZEBO_MODEL_PATH", ":".join(model_paths))
-        )
     # --- Start gzserver / gzclient ---
 
     gzserver = ExecuteProcess(
@@ -59,7 +69,6 @@ def generate_launch_description():
             "gzserver", "--verbose", world,
             "-s", "libgazebo_ros_init.so",
             "-s", "libgazebo_ros_factory.so",
-            "-s", "libgazebo_ros_state.so",
         ],
         output="screen",
     )
