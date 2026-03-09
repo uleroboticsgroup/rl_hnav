@@ -9,6 +9,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(gazebo_ros REQUIRED)
 
 
 # Gazebo Classic
@@ -29,6 +31,8 @@ add_library(mujoco_pose_model_plugin SHARED
 ament_target_dependencies(mujoco_pose_model_plugin
   rclcpp
   geometry_msgs
+  sensor_msgs
+  gazebo_ros
 )
 
 target_link_libraries(mujoco_pose_model_plugin
