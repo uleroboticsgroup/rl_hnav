@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-joint-state-publisher-gui \
     ros-humble-gazebo-ros-pkgs \
     ros-humble-gazebo-msgs \
+    libgazebo-dev \
     ros-humble-tf2-tools \
     ros-humble-xacro \
     ros-humble-control-toolbox \
