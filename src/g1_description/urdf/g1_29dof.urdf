@@ -1069,37 +1069,24 @@
   <gazebo reference="right_wrist_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
   <gazebo reference="right_rubber_hand"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
 
-  <!-- Gazebo LiDAR (PointCloud2) on mid360_link — Livox MID-360 approximation -->
+  <!-- Gazebo LiDAR (LaserScan) on mid360_link -->
   <!--
-    Livox MID-360 approximation for SLAM/Nav2:
-    - Horizontal: 360° FOV (-π to +π), 1440 samples (0.25°/sample)
-    - Vertical: 40° FOV (-25° to +15°), 16 layers
-      · Biased downward to catch low walls at 1.38m mount height
-      · At -25° / 1m → beam at 0.91m  (catches tables, low cabinets)
-      · At -25° / 2m → beam at 0.45m  (catches window sills, low walls)
-      · At -25° / 3m → beam at ground
-    - Output: PointCloud2 on /cloud  (pointcloud_to_laserscan → /scan for Nav2)
-    - Range: 0.12m – 20m (matches MID-360 spec)
+    Single-layer 2D LaserScan, tilted -20° to catch low walls.
+    720 samples, -90° to +90° (180° FOV). Lightweight for gzserver.
   -->
   <gazebo reference="mid360_link">
     <sensor type="ray" name="mid360_lidar">
-      <pose>0 0 0 0 0 0</pose>
+      <pose>0 0 0 -0.35 0 0</pose>
       <update_rate>10</update_rate>
 
       <ray>
         <scan>
           <horizontal>
-            <samples>1440</samples>
+            <samples>720</samples>
             <resolution>1</resolution>
             <min_angle>-3.141593</min_angle>
             <max_angle> 3.141593</max_angle>
           </horizontal>
-          <vertical>
-            <samples>16</samples>
-            <resolution>1</resolution>
-            <min_angle>-0.436332</min_angle>   <!-- -25° -->
-            <max_angle> 0.261799</max_angle>   <!-- +15° -->
-          </vertical>
         </scan>
 
         <range>
@@ -1112,9 +1099,9 @@
       <plugin name="gazebo_ros_ray_sensor" filename="libgazebo_ros_ray_sensor.so">
         <ros>
           <namespace>/</namespace>
-          <remapping>~/out:=/cloud</remapping>
+          <remapping>~/out:=/scan</remapping>
         </ros>
-        <output_type>sensor_msgs/PointCloud2</output_type>
+        <output_type>sensor_msgs/LaserScan</output_type>
         <frame_name>mid360_link</frame_name>
       </plugin>
 

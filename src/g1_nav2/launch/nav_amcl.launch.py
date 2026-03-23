@@ -152,30 +152,7 @@ def generate_launch_description():
             "use_namespace": "false",
         }.items()
     )
-    # PointCloud2 → LaserScan conversion  (Livox MID-360 3D → 2D for Nav2/SLAM)
-    pc2_to_scan = Node(
-        package="pointcloud_to_laserscan",
-        executable="pointcloud_to_laserscan_node",
-        name="pointcloud_to_laserscan",
-        output="screen",
-        parameters=[{
-            "use_sim_time": True,
-            "target_frame": "mid360_link",
-            "min_height": -2.0,      # accept all rays going downward
-            "max_height":  2.0,      # accept all rays going upward
-            "range_min":   0.12,     # MID-360 min range
-            "range_max":  20.0,      # MID-360 max range
-            "angle_min":  -3.141593, # full 360°
-            "angle_max":   3.141593,
-            "angle_increment": 0.004363, # 360°/1440 samples ≈ 0.25°
-            "inf_epsilon": 1.0,
-            "use_inf":    True,
-        }],
-        remappings=[
-            ("cloud_in", "/cloud"),
-            ("scan",     "/scan"),
-        ],
-    )    # RViz
+    # RViz
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -266,9 +243,6 @@ def generate_launch_description():
             SetParameter(name="use_sim_time", value=False),
             TimerAction(period=2.0, actions=[mujoco_bridge]),
         ]),
-
-        # Phase 3b: PointCloud2 → LaserScan converter (needs /cloud from Gazebo lidar)
-        TimerAction(period=5.0, actions=[pc2_to_scan]),
 
         # Phase 4: SLAM (use_sim_time=true) — needs /scan + TF chain
         TimerAction(period=10.0, actions=[slam]),
