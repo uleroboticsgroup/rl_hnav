@@ -8,12 +8,12 @@ from launch.actions import (
     RegisterEventHandler,
     TimerAction,
     LogInfo,
+    GroupAction,
 )
-from launch.event_handlers import OnShutdown
+from launch.event_handlers import OnShutdown, OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import GroupAction
 from launch_ros.actions import SetParameter
 
 
@@ -152,7 +152,30 @@ def generate_launch_description():
             "use_namespace": "false",
         }.items()
     )
-    # RViz
+    # PointCloud2 → LaserScan conversion  (Livox MID-360 3D → 2D for Nav2/SLAM)
+    pc2_to_scan = Node(
+        package="pointcloud_to_laserscan",
+        executable="pointcloud_to_laserscan_node",
+        name="pointcloud_to_laserscan",
+        output="screen",
+        parameters=[{
+            "use_sim_time": True,
+            "target_frame": "mid360_link",
+            "min_height": -2.0,      # accept all rays going downward
+            "max_height":  2.0,      # accept all rays going upward
+            "range_min":   0.12,     # MID-360 min range
+            "range_max":  20.0,      # MID-360 max range
+            "angle_min":  -3.141593, # full 360°
+            "angle_max":   3.141593,
+            "angle_increment": 0.004363, # 360°/1440 samples ≈ 0.25°
+            "inf_epsilon": 1.0,
+            "use_inf":    True,
+        }],
+        remappings=[
+            ("cloud_in", "/cloud"),
+            ("scan",     "/scan"),
+        ],
+    )    # RViz
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -200,94 +223,63 @@ def generate_launch_description():
         )
     )
 
-    # Delays (simple et efficace)
-    slam_delayed = TimerAction(period=10.0, actions=[slam])
-    nav2_delayed = TimerAction(period=16.0, actions=[nav2])
-    dump_delayed = TimerAction(period=20.0, actions=[dump_controller_params])
-    '''
-    rl_sar_delayed = TimerAction(
-        period=3.0,
-        actions=[param_node, rl_sar_node],
-    )
-    '''
-    rl_sar_delayed = TimerAction(period=3.0, actions=[rl_mujoco])
-    bridge_delayed = TimerAction(
-        period=2.0,
-        actions=[mujoco_bridge],
-    )
+    # ================================================================
+    # STARTUP TIMING
+    # ================================================================
+    #
+    # Timeline:
+    #   t=0s   → gzserver + gzclient + RViz
+    #   t=2s   → RSP + spawn (inside spawn_g1.launch.py)
+    #   t=2s   → bridge (use_sim_time=false, publishes TF odom→base_footprint + /odom + /joint_states)
+    #   t=10s  → SLAM toolbox (needs: /scan, TF odom→base_footprint, TF base_footprint→mid360_link)
+    #   t=16s  → Nav2 (needs: /map, TF map→odom→base_footprint)
+    #   t=20s  → dump controller params (debug)
+    #
+    # Note: bridge must run with use_sim_time=False because it needs to
+    # publish TF with wall-clock timestamps before /clock is available.
+    # All other nodes (SLAM, Nav2, RSP) run with use_sim_time=True.
+    # ================================================================
 
-    '''
-        return LaunchDescription([
-            DeclareLaunchArgument("use_sim_time", default_value="true"),
-            DeclareLaunchArgument("map_name", default_value="g1_map"),
-
-            log_params,
-
-            # 1) Gazebo + robot figé (odom / scan / tf OK)
-            g1_spawn,
-
-            # 2) rl_sar (param_node + locomotion MuJoCo)
-            #rl_sar_delayed,
-
-            # 3) SLAM
-            slam_delayed,
-
-            # 4) Nav2
-            nav2_delayed,
-
-            # 5) Debug params Nav2
-            dump_delayed,
-
-            # 6) RViz
-            rviz,
-        ])
-    '''
-
-    # -----------------------------
-    # GROUP 1: Bridge en WALL time (Option A)
-    # -----------------------------
-    bridge_group = GroupAction([
-        SetParameter(name="use_sim_time", value=False),
-        bridge_delayed,   # ton IncludeLaunchDescription du bridge
-    ])
-
-    # -----------------------------
-    # GROUP 2: Tout le reste suit /clock
-    # -----------------------------
-    sim_group = GroupAction([
-        SetParameter(name="use_sim_time", value=True),
-
-        # 1) Gazebo
-        g1_spawn,
-
-        # 4) SLAM
-        slam_delayed,
-
-        # 5) Nav2
-        nav2_delayed,
-
-        # 6) Debug
-        dump_delayed,
-
-        # 7) RViz
-        rviz,
-    ])
-
+    # ================================================================
+    # FINAL LAUNCH DESCRIPTION
+    # ================================================================
     return LaunchDescription([
-        DeclareLaunchArgument("use_sim_time", default_value="true"),  
+        DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("map_name", default_value="g1_map"),
         DeclareLaunchArgument(
             "publish_map_odom_identity",
-            default_value="false",
-            description="Publish static TF map->odom identity (debug SLAM)"
+            default_value="true",
+            description="Publish static TF map->odom identity (bootstrap for SLAM)"
         ),
 
         log_params,
 
-        # ✅ Bridge d'abord et hors sim_time true
-        bridge_group,
+        # Phase 1: Gazebo + spawn (gzserver, gzclient, RSP, spawn_entity)
+        g1_spawn,
 
-        # ✅ Le reste en sim time
-        sim_group,
+        # Phase 2: RViz (can start early)
+        rviz,
+
+        # Phase 3: Bridge (use_sim_time=false) — publishes immediately with default pose
+        # Wrapped in GroupAction to isolate use_sim_time=False from other nodes
+        GroupAction([
+            SetParameter(name="use_sim_time", value=False),
+            TimerAction(period=2.0, actions=[mujoco_bridge]),
+        ]),
+
+        # Phase 3b: PointCloud2 → LaserScan converter (needs /cloud from Gazebo lidar)
+        TimerAction(period=5.0, actions=[pc2_to_scan]),
+
+        # Phase 4: SLAM (use_sim_time=true) — needs /scan + TF chain
+        TimerAction(period=10.0, actions=[slam]),
+
+        # Phase 5: Nav2 (use_sim_time=true) — needs /map + full TF
+        TimerAction(period=16.0, actions=[nav2]),
+
+        # Phase 6: Debug parameter dump
+        TimerAction(period=20.0, actions=[dump_controller_params]),
+
+        # Save map on shutdown
+        save_map_on_shutdown,
     ])
 

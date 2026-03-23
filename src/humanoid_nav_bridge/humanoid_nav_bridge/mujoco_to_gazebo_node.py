@@ -40,6 +40,7 @@ from rclpy.duration import Duration
 
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import JointState
 import tf2_ros
 
 from rosgraph_msgs.msg import Clock as ClockMsg
@@ -109,6 +110,20 @@ class MujocoToGazeboBridge(Node):
 
         self.create_subscription(PoseStamped, self.mujoco_pose_topic, self.pose_cb, 10)
 
+        # --- Joint states relay: /mujoco/joint_states → /joint_states ---
+        # RSP needs /joint_states with sim-time stamps to publish movable joint TFs.
+        # Without this, the TF chain to mid360_link (lidar) is broken and SLAM fails.
+        self.mujoco_js_topic = self.declare_parameter(
+            "mujoco_joint_states_topic", "/mujoco/joint_states"
+        ).value
+        js_qos = QoSProfile(
+            depth=10,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+        )
+        self.create_subscription(JointState, self.mujoco_js_topic, self.joint_states_cb, js_qos)
+        self.joint_states_pub = self.create_publisher(JointState, "/joint_states", 10)
+
         self.odom_pub = self.create_publisher(Odometry, self.odom_topic, 10)
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
         self.static_tf_broadcaster = tf2_ros.StaticTransformBroadcaster(self)
@@ -145,6 +160,22 @@ class MujocoToGazeboBridge(Node):
             f"RX base_pose x={self.x:.3f} y={self.y:.3f}",
             throttle_duration_sec=1.0
         )
+
+    def joint_states_cb(self, msg: JointState):
+        """Relay /mujoco/joint_states → /joint_states with sim-time stamp.
+
+        RSP (use_sim_time=true) needs joint_states timestamped in sim time.
+        MuJoCo publishes with wall-clock stamps, so we re-stamp with /clock time.
+        """
+        out = JointState()
+        out.header = msg.header
+        # Re-stamp with sim time so RSP accepts the message
+        out.header.stamp = self._select_stamp()
+        out.name = msg.name
+        out.position = msg.position
+        out.velocity = msg.velocity
+        out.effort = msg.effort
+        self.joint_states_pub.publish(out)
 
     def clock_cb(self, msg: ClockMsg):
         self.last_clock = msg.clock

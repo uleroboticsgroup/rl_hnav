@@ -1030,43 +1030,96 @@
        disable self-collision bitmask so ODE doesn't fight MuJoCo.
        ============================================================ -->
 
-  <!-- Links with inertia: gravity=false (36 links) -->
-  <gazebo reference="pelvis"><gravity>false</gravity></gazebo>
-  <gazebo reference="pelvis_contour_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_hip_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_hip_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_hip_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_knee_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_ankle_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_ankle_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_hip_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_hip_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_hip_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_knee_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_ankle_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_ankle_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="waist_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="waist_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="torso_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="logo_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="head_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="waist_support_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_shoulder_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_shoulder_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_shoulder_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_elbow_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_wrist_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_wrist_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_wrist_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="left_rubber_hand"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_shoulder_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_shoulder_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_shoulder_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_elbow_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_wrist_roll_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_wrist_pitch_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_wrist_yaw_link"><gravity>false</gravity></gazebo>
-  <gazebo reference="right_rubber_hand"><gravity>false</gravity></gazebo>
+  <!-- Links with inertia: gravity=false + Gazebo materials (36 links) -->
+  <!-- dark = Gazebo/DarkGrey, white = Gazebo/White -->
+  <gazebo reference="pelvis"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="pelvis_contour_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_hip_pitch_link"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="left_hip_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_hip_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_knee_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_ankle_pitch_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_ankle_roll_link"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="right_hip_pitch_link"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="right_hip_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_hip_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_knee_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_ankle_pitch_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_ankle_roll_link"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="waist_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="waist_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="torso_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="logo_link"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="head_link"><gravity>false</gravity><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="waist_support_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_shoulder_pitch_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_shoulder_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_shoulder_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_elbow_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_wrist_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_wrist_pitch_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_wrist_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="left_rubber_hand"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_shoulder_pitch_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_shoulder_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_shoulder_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_elbow_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_wrist_roll_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_wrist_pitch_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_wrist_yaw_link"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+  <gazebo reference="right_rubber_hand"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
+
+  <!-- Gazebo LiDAR (PointCloud2) on mid360_link — Livox MID-360 approximation -->
+  <!--
+    Livox MID-360 approximation for SLAM/Nav2:
+    - Horizontal: 360° FOV (-π to +π), 1440 samples (0.25°/sample)
+    - Vertical: 40° FOV (-25° to +15°), 16 layers
+      · Biased downward to catch low walls at 1.38m mount height
+      · At -25° / 1m → beam at 0.91m  (catches tables, low cabinets)
+      · At -25° / 2m → beam at 0.45m  (catches window sills, low walls)
+      · At -25° / 3m → beam at ground
+    - Output: PointCloud2 on /cloud  (pointcloud_to_laserscan → /scan for Nav2)
+    - Range: 0.12m – 20m (matches MID-360 spec)
+  -->
+  <gazebo reference="mid360_link">
+    <sensor type="ray" name="mid360_lidar">
+      <pose>0 0 0 0 0 0</pose>
+      <update_rate>10</update_rate>
+
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>1440</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.141593</min_angle>
+            <max_angle> 3.141593</max_angle>
+          </horizontal>
+          <vertical>
+            <samples>16</samples>
+            <resolution>1</resolution>
+            <min_angle>-0.436332</min_angle>   <!-- -25° -->
+            <max_angle> 0.261799</max_angle>   <!-- +15° -->
+          </vertical>
+        </scan>
+
+        <range>
+          <min>0.12</min>
+          <max>20.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+
+      <plugin name="gazebo_ros_ray_sensor" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <namespace>/</namespace>
+          <remapping>~/out:=/cloud</remapping>
+        </ros>
+        <output_type>sensor_msgs/PointCloud2</output_type>
+        <frame_name>mid360_link</frame_name>
+      </plugin>
+
+    </sensor>
+  </gazebo>
 
   <!-- Pose sync plugin (collisions disabled via API in the plugin itself) -->
   <gazebo>
