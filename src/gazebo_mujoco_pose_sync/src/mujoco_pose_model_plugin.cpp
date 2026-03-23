@@ -50,9 +50,27 @@ public:
     // but we need to ensure the messages are processed.
     // Actually, gazebo_ros::Node spins in the background.
 
-    update_connection_ = gazebo::event::Events::ConnectWorldUpdateBegin(
+    // ---- Make the model a pure kinematic puppet ----
+    // Do NOT use SetKinematic(true) — it breaks FK propagation of SetPosition.
+    // Instead: disable gravity + collisions, and connect to WorldUpdateEnd
+    // to re-apply poses AFTER ODE has done its (now harmless) step.
+    for (auto &link : model_->GetLinks()) {
+      link->SetGravityMode(false);
+      link->SetCollideMode("none");
+      link->SetAutoDisable(false);
+    }
+
+    // Also disable self-collision on the model
+    model_->SetSelfCollide(false);
+
+    // Connect to WorldUpdateEnd so our pose writes happen AFTER ODE step,
+    // ensuring we have the final word on link positions.
+    update_connection_ = gazebo::event::Events::ConnectWorldUpdateEnd(
         std::bind(&MujocoPoseModelPlugin::OnUpdate, this));
 
+    RCLCPP_INFO(node_->get_logger(),
+      "MujocoPoseModelPlugin: puppet mode (gravity=OFF, collisions=NONE) for %zu links",
+      model_->GetLinks().size());
     RCLCPP_INFO(node_->get_logger(), "MujocoPoseModelPlugin listening on '%s' (target_link='%s')", 
                 pose_topic_.c_str(), target_link_.empty() ? "<model>" : target_link_.c_str());
   }
@@ -77,14 +95,26 @@ public:
     }
 
     if (pose_ready) {
-      ignition::math::Pose3d p(
-        pose_msg.pose.position.x,
-        pose_msg.pose.position.y,
-        pose_msg.pose.position.z + z_offset_,
-        0.0, 0.0, 0.0);
-
+      // MuJoCo publishes the PELVIS world pose (qpos[0..6]).
+      // Gazebo model root is base_footprint, which is 0.92m below pelvis
+      // via a fixed joint (origin xyz="0 0 0.92").
+      //
+      // CRITICAL: We must rotate the offset into the pelvis frame.
+      // base_footprint_pos = pelvis_pos + pelvis_rot * (0, 0, -0.92)
+      // If we just subtract 0.92 in world-Z, any pelvis roll/pitch
+      // creates a lateral offset error → visible as over-sway.
       const auto &q = pose_msg.pose.orientation;
       ignition::math::Quaterniond quat(q.w, q.x, q.y, q.z);
+
+      // Offset from pelvis to base_footprint in pelvis-local frame
+      ignition::math::Vector3d local_offset(0, 0, -0.92);
+      ignition::math::Vector3d world_offset = quat.RotateVector(local_offset);
+
+      ignition::math::Pose3d p(
+        pose_msg.pose.position.x + world_offset.X(),
+        pose_msg.pose.position.y + world_offset.Y(),
+        pose_msg.pose.position.z + world_offset.Z(),
+        0.0, 0.0, 0.0);
       p.Rot() = quat;
 
       if (target_link_.empty())
@@ -132,6 +162,18 @@ public:
            j->SetPosition(0, joints_msg.position[i], true);
         }
       }
+    }
+
+    // After setting base pose + joint angles, zero all motion states
+    // so ODE has no residual that can accumulate into drift.
+    for (auto &link : model_->GetLinks()) {
+      link->SetLinearVel(ignition::math::Vector3d::Zero);
+      link->SetAngularVel(ignition::math::Vector3d::Zero);
+      link->SetForce(ignition::math::Vector3d::Zero);
+      link->SetTorque(ignition::math::Vector3d::Zero);
+    }
+    for (auto &j : model_->GetJoints()) {
+      j->SetForce(0, 0.0);
     }
   }
 

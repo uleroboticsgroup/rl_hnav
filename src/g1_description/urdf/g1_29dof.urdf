@@ -1025,13 +1025,50 @@
       <material name="white"/>
     </visual>
   </link>
-  <gazebo reference="pelvis">
-    <gravity>false</gravity>
-  </gazebo>
-  <gazebo reference="torso_link">
-    <gravity>false</gravity>
-  </gazebo>
+  <!-- ============================================================
+       Gazebo physics overrides: disable gravity on ALL links and
+       disable self-collision bitmask so ODE doesn't fight MuJoCo.
+       ============================================================ -->
 
+  <!-- Links with inertia: gravity=false (36 links) -->
+  <gazebo reference="pelvis"><gravity>false</gravity></gazebo>
+  <gazebo reference="pelvis_contour_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_hip_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_hip_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_hip_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_knee_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_ankle_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_ankle_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_hip_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_hip_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_hip_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_knee_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_ankle_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_ankle_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="waist_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="waist_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="torso_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="logo_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="head_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="waist_support_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_shoulder_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_shoulder_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_shoulder_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_elbow_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_wrist_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_wrist_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_wrist_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="left_rubber_hand"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_shoulder_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_shoulder_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_shoulder_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_elbow_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_wrist_roll_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_wrist_pitch_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_wrist_yaw_link"><gravity>false</gravity></gazebo>
+  <gazebo reference="right_rubber_hand"><gravity>false</gravity></gazebo>
+
+  <!-- Pose sync plugin (collisions disabled via API in the plugin itself) -->
   <gazebo>
     <plugin name="mujoco_pose_sync" filename="libmujoco_pose_model_plugin.so">
       <pose_topic>/mujoco/base_pose</pose_topic>

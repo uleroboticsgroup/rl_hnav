@@ -4156,6 +4156,7 @@
       </collision>
     </link>
     <model name='Mailbox'>
+      <static>1</static>
       <link name='link'>
         <collision name='collision'>
           <geometry>
@@ -5195,6 +5196,7 @@
       <pose frame=''>6.35903 -2.27759 0 0 -0 0</pose>
     </model>
     <model name='first_2015_trash_can'>
+      <static>1</static>
       <link name='link'>
         <inertial>
           <pose frame=''>0 0 0.3683 0 -0 0</pose>
@@ -5226,6 +5228,7 @@
       <pose frame=''>1.88346 1.91193 0 0 -0 0</pose>
     </model>
     <model name='first_2015_trash_can_0'>
+      <static>1</static>
       <link name='link'>
         <inertial>
           <pose frame=''>0 0 0.3683 0 -0 0</pose>
@@ -5257,7 +5260,7 @@
       <pose frame=''>-4.69354 4.89439 0 0 -0 0</pose>
     </model>
     <model name='table'>
-      <static>0</static>
+      <static>1</static>
       <link name='link'>
         <collision name='surface'>
           <pose frame=''>0 0 1 0 -0 0</pose>
