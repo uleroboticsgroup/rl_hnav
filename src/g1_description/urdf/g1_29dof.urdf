@@ -1070,22 +1070,18 @@
   <gazebo reference="right_rubber_hand"><gravity>false</gravity><material>Gazebo/White</material></gazebo>
 
   <!-- Gazebo LiDAR (LaserScan) on mid360_link -->
-  <!--
-    Single-layer 2D LaserScan, tilted -20° to catch low walls.
-    720 samples, -90° to +90° (180° FOV). Lightweight for gzserver.
-  -->
   <gazebo reference="mid360_link">
     <sensor type="ray" name="mid360_lidar">
-      <pose>0 0 0 -0.35 0 0</pose>
-      <update_rate>10</update_rate>
+      <pose>0 0 0 0 0 0</pose>
+      <update_rate>20</update_rate>
 
       <ray>
         <scan>
           <horizontal>
-            <samples>720</samples>
+            <samples>1440</samples>
             <resolution>1</resolution>
-            <min_angle>-3.141593</min_angle>
-            <max_angle> 3.141593</max_angle>
+            <min_angle>-3.14159265</min_angle>
+            <max_angle> 3.14159265</max_angle>
           </horizontal>
         </scan>
 
