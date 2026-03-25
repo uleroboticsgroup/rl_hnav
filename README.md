@@ -261,6 +261,11 @@ cd ~/
 git clone https://github.com/uleroboticsgroup/rl_hnav.git
 cd rl_hnav
 git submodule update --init --recursive
+touch src/rl_sar/src/rl_sar_zoo/COLCON_IGNORE
+# Create package.xml symlinks for ROS 2 (rl_sar uses package.ros2.xml)
+for d in src/rl_sar/src/robot_msgs src/rl_sar/src/robot_joint_controller src/rl_sar/src/rl_sar; do
+  ln -sf package.ros2.xml "$d/package.xml"
+done
 ```
 
 ---
