@@ -260,13 +260,36 @@ bash rl_hnav/src/rl_sar/run/download_mujoco.sh
 cd ~/
 git clone https://github.com/uleroboticsgroup/rl_hnav.git
 cd rl_hnav
+
 git submodule update --init --recursive
 touch src/rl_sar/src/rl_sar_zoo/COLCON_IGNORE
+
 # Create package.xml symlinks for ROS 2 (rl_sar uses package.ros2.xml)
 for d in src/rl_sar/src/robot_msgs src/rl_sar/src/robot_joint_controller src/rl_sar/src/rl_sar; do
   ln -sf package.ros2.xml "$d/package.xml"
 done
 ```
+
+---
+
+## Docker (optional)
+
+Build the image and start the container (requires NVIDIA GPU + `nvidia-container-toolkit`):
+
+```bash
+cd ~/rl_hnav
+xhost +local:docker # allow GUI forwarding
+docker compose -f docker/docker-compose.yml up -d
+```
+
+Enter the running container:
+
+```bash
+docker exec -it rl_hnav_container bash
+```
+
+> Inside the container your workspace is mounted at `/home/developer/rl_hnav`.
+> All commands in the **Build** and **Run** sections below are meant to run **inside the container**.
 
 ---
 

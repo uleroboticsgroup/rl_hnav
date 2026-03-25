@@ -39,3 +39,6 @@ MUJOCO_LOG.TXT
 *.tgz
 *.tar.gz
 temp_extract*/
+
+# colcon_ignore
+src/rl_sar_zoo/COLCON_IGNORE
